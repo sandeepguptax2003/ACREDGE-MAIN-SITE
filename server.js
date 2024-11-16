@@ -20,7 +20,7 @@ app.use(hpp());
 app.use(compression());
 
 app.use(cookieParser());
-app.use(bodyParser.json({ limit: '10kb' }));
+app.use(bodyParser.json());
 
 app.use(
   cors({
