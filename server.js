@@ -23,15 +23,17 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
+
 app.use("/api", limiter);
 
 app.use(compression());
 
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: '10kb' }));
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || true,
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
@@ -39,14 +41,9 @@ app.use(
 
 app.use("/api/auth", LoginRoutes);
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    status: 'error',
-  });
-});
 
 const PORT = process.env.PORT || 8000;
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
