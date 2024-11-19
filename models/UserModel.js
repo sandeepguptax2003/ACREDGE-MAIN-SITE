@@ -10,11 +10,23 @@ const UserSchema = {
     type: String,
     default: ''
   },
-  name: {
+  email: {
     type: String,
     default: ''
   },
-  email: {
+  firstName: {
+    type: String,
+    default: ''
+  },
+  lastName: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
+  aboutMe: {
     type: String,
     default: ''
   },

@@ -9,6 +9,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
 const compression = require("compression");
 const LoginRoutes = require("./routes/LoginRoute");
+const UserRoutes = require("./routes/UserRoutes");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use(
 );
 
 app.use("/api/auth", LoginRoutes);
+app.use("/api/user", UserRoutes);
 
 
 const PORT = process.env.PORT || 8000;
