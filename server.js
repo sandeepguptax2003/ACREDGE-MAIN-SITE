@@ -10,6 +10,7 @@ const xss = require("xss-clean");
 const compression = require("compression");
 const LoginRoutes = require("./routes/LoginRoute");
 const UserRoutes = require("./routes/UserRoutes");
+const ProfileImageRoutes = require("./routes/ProfileImageRoutes");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(
 
 app.use("/api/auth", LoginRoutes);
 app.use("/api/user", UserRoutes);
+app.use("/api/profile-image", ProfileImageRoutes);
 
 
 const PORT = process.env.PORT || 8000;

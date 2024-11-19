@@ -10,6 +10,10 @@ const UserSchema = {
     type: String,
     default: ''
   },
+  profileImage: {
+    type: String,
+    default: null
+  },
   email: {
     type: String,
     default: ''
