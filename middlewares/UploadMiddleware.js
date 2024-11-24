@@ -4,25 +4,69 @@ const path = require('path');
 const storage = multer.memoryStorage();
 
 const FILE_LIMITS = {
-  profileImage: 5 * 1024 * 1024  // 5MB limit for profile images
+  profileImage: 5 * 1024 * 1024,  // 5MB for profile images
+  propertyImages: 10 * 1024 * 1024, // 10MB for property images
+  propertyVideos: 50 * 1024 * 1024  // 50MB for property videos
+};
+
+const MAX_COUNTS = {
+  propertyImages: 20,
+  propertyVideos: 5
 };
 
 const fileFilter = (req, file, cb) => {
   const allowedImageTypes = /jpeg|jpg|png/;
+  const allowedVideoTypes = /mp4|mov/;
   const ext = path.extname(file.originalname).toLowerCase().substring(1);
 
-  if (!allowedImageTypes.test(ext)) {
-    return cb(new Error('Only JPG and PNG images are allowed'), false);
-  }
+  try {
+    switch (file.fieldname) {
+      case 'profileImage':
+        if (!allowedImageTypes.test(ext)) {
+          throw new Error('Profile image must be JPG or PNG format');
+        }
+        if (file.size > FILE_LIMITS.profileImage) {
+          throw new Error('Profile image size exceeds 5MB limit');
+        }
+        break;
 
-  if (file.size > FILE_LIMITS.profileImage) {
-    return cb(new Error('File size exceeds 5MB limit'), false);
-  }
+      case 'images':
+        if (!allowedImageTypes.test(ext)) {
+          throw new Error('Property images must be JPG or PNG format');
+        }
+        if (file.size > FILE_LIMITS.propertyImages) {
+          throw new Error('Property image size exceeds 10MB limit');
+        }
+        break;
 
-  cb(null, true);
+      case 'videos':
+        if (!allowedVideoTypes.test(ext)) {
+          throw new Error('Property videos must be MP4 or MOV format');
+        }
+        if (file.size > FILE_LIMITS.propertyVideos) {
+          throw new Error('Property video size exceeds 50MB limit');
+        }
+        break;
+
+      default:
+        throw new Error('Invalid field name');
+    }
+
+    const existingFiles = req.files ? req.files[file.fieldname] : [];
+    if (file.fieldname !== 'profileImage' && 
+        existingFiles && 
+        existingFiles.length >= MAX_COUNTS[file.fieldname]) {
+      throw new Error(`Maximum number of ${file.fieldname} reached`);
+    }
+
+    cb(null, true);
+  } catch (error) {
+    cb(error, false);
+  }
 };
 
-const upload = multer({
+// Single file upload for profile image
+const uploadProfileImage = multer({
   storage,
   fileFilter,
   limits: {
@@ -30,4 +74,34 @@ const upload = multer({
   }
 }).single('profileImage');
 
-module.exports = { upload };
+// Multiple files upload for property media
+const uploadPropertyMedia = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: Math.max(...Object.values(FILE_LIMITS))
+  }
+}).fields([
+  { name: 'images', maxCount: MAX_COUNTS.propertyImages },
+  { name: 'videos', maxCount: MAX_COUNTS.propertyVideos }
+]);
+
+const handleUploadError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({
+        error: `Unexpected field: ${err.field}`
+      });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+};
+
+module.exports = {
+  uploadProfileImage,
+  uploadPropertyMedia,
+  handleUploadError,
+  FILE_LIMITS,
+  MAX_COUNTS
+};

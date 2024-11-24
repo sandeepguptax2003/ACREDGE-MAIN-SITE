@@ -22,7 +22,7 @@ exports.uploadProfileImage = async (req, res) => {
     }
 
     // Upload new image
-    const profileImageUrl = await uploadToFirebase(req.file, phoneNumber);
+    const profileImageUrl = await uploadToFirebase(req.file, 'profileImage', phoneNumber);
 
     // Update profile with new image URL
     await db.collection('UserProfile').doc(phoneNumber).update({
