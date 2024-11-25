@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 const FOLDER_PATHS = {
   profileImage: 'UserProfileImage',
   propertyImages: 'PropertyImages',
-  propertyVideos: 'PropertyVideos'
+  propertyVideos: 'PropertyVideos',
+  propertyDocuments: 'PropertyDocuments'
 };
 
 const generateFileName = (file, folder, entityId = '') => {

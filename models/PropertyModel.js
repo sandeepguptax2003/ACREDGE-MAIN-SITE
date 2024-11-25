@@ -2,7 +2,7 @@ const admin = require('firebase-admin');
 
 class Property {
   constructor(data) {
-    // Existing fields
+    // Basic Details
     this.propertyListing = data.propertyListing;
     this.buildingType = data.buildingType;
     this.city = data.city;
@@ -10,6 +10,8 @@ class Property {
     this.projectName = data.projectName;
     this.towerName = data.towerName;
     this.unitNumber = data.unitNumber;
+    
+    // Property Details
     this.propertyType = data.propertyType;
     this.typology = data.typology;
     this.addOns = data.addOns;
@@ -23,14 +25,20 @@ class Property {
     this.unit = data.unit;
     this.totalArea = data.totalArea;
     this.possessionStatus = data.possessionStatus;
+
+    // Amenities
+    this.amenities = data.amenities || [];
+
+    // Price Details
     this.sellingPrice = data.sellingPrice;
     this.rentMonthlyPrice = data.rentMonthlyPrice;
     this.price = data.price;
     this.moreDetails = data.moreDetails;
     
-    // New media fields
+    // Media
     this.images = data.images || [];
     this.videos = data.videos || [];
+    this.documents = data.documents || [];
     
     // Metadata
     this.createdBy = data.createdBy || null;
@@ -44,7 +52,7 @@ class Property {
   static validate(data) {
     const errors = [];
     
-    // Existing validation
+    // Basic validation
     if (!data.propertyListing || !['Rent', 'Sale'].includes(data.propertyListing))
       errors.push('Invalid property listing type');
     
@@ -60,7 +68,16 @@ class Property {
       errors.push('Videos must be an array');
     }
 
-    // URL validation for existing media
+    if (data.documents && !Array.isArray(data.documents)) {
+      errors.push('Documents must be an array');
+    }
+
+    // Amenities validation - only check if it's an array, no other validation needed
+    if (data.amenities && !Array.isArray(data.amenities)) {
+      errors.push('Amenities must be an array');
+    }
+
+    // URL validation for media
     if (Array.isArray(data.images)) {
       data.images.forEach((url, index) => {
         if (url && !this.isValidUrl(url)) {
@@ -73,6 +90,14 @@ class Property {
       data.videos.forEach((url, index) => {
         if (url && !this.isValidUrl(url)) {
           errors.push(`Invalid URL format for video at index ${index}`);
+        }
+      });
+    }
+
+    if (Array.isArray(data.documents)) {
+      data.documents.forEach((url, index) => {
+        if (url && !this.isValidUrl(url)) {
+          errors.push(`Invalid URL format for document at index ${index}`);
         }
       });
     }
@@ -112,8 +137,10 @@ class Property {
       projectName: this.projectName,
       towerName: this.towerName,
       unitNumber: this.unitNumber,
+      amenities: this.amenities,
       images: this.images,
       videos: this.videos,
+      documents: this.documents,
       createdBy: this.createdBy,
       createdOn: this.createdOn,
       updatedBy: this.updatedBy,

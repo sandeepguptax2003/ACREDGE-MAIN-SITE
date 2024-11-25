@@ -230,37 +230,3 @@ exports.updateProperty = async (req, res) => {
     res.status(500).json({ error: 'Failed to update property' });
   }
 };
-
-// Function to delete a property
-exports.deleteProperty = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const propertyRef = db.collection(Property.collectionName).doc(id);
-    
-    const doc = await propertyRef.get();
-    if (!doc.exists) {
-      return res.status(404).json({ message: 'Property not found' });
-    }
-
-    const propertyData = doc.data();
-    
-    // Delete associated files
-    if (propertyData.images?.length || propertyData.videos?.length) {
-      await deleteMultipleFiles([
-        ...(propertyData.images || []),
-        ...(propertyData.videos || [])
-      ]);
-    }
-
-    // Delete the document
-    await propertyRef.delete();
-
-    res.status(200).json({
-      message: 'Property deleted successfully',
-      id
-    });
-  } catch (error) {
-    console.error('Error deleting property:', error);
-    res.status(500).json({ error: 'Failed to delete property' });
-  }
-};

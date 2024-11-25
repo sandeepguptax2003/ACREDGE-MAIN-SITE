@@ -4,19 +4,22 @@ const path = require('path');
 const storage = multer.memoryStorage();
 
 const FILE_LIMITS = {
-  profileImage: 5 * 1024 * 1024,  // 5MB for profile images
-  propertyImages: 10 * 1024 * 1024, // 10MB for property images
-  propertyVideos: 50 * 1024 * 1024  // 50MB for property videos
+  profileImage: 5 * 1024 * 1024,     // 5MB for profile images
+  propertyImages: 10 * 1024 * 1024,  // 10MB for property images
+  propertyVideos: 50 * 1024 * 1024,  // 50MB for property videos
+  propertyDocuments: 25 * 1024 * 1024 // 25MB for property documents
 };
 
 const MAX_COUNTS = {
   propertyImages: 20,
-  propertyVideos: 5
+  propertyVideos: 5,
+  propertyDocuments: 10
 };
 
 const fileFilter = (req, file, cb) => {
   const allowedImageTypes = /jpeg|jpg|png/;
   const allowedVideoTypes = /mp4|mov/;
+  const allowedDocTypes = /pdf|doc|docx|jpg|jpeg|png/;
   const ext = path.extname(file.originalname).toLowerCase().substring(1);
 
   try {
@@ -45,6 +48,15 @@ const fileFilter = (req, file, cb) => {
         }
         if (file.size > FILE_LIMITS.propertyVideos) {
           throw new Error('Property video size exceeds 50MB limit');
+        }
+        break;
+
+      case 'documents':
+        if (!allowedDocTypes.test(ext)) {
+          throw new Error('Documents must be PDF, DOC, DOCX, JPG or PNG format');
+        }
+        if (file.size > FILE_LIMITS.propertyDocuments) {
+          throw new Error('Document size exceeds 25MB limit');
         }
         break;
 
@@ -83,7 +95,8 @@ const uploadPropertyMedia = multer({
   }
 }).fields([
   { name: 'images', maxCount: MAX_COUNTS.propertyImages },
-  { name: 'videos', maxCount: MAX_COUNTS.propertyVideos }
+  { name: 'videos', maxCount: MAX_COUNTS.propertyVideos },
+  { name: 'documents', maxCount: MAX_COUNTS.propertyDocuments }
 ]);
 
 const handleUploadError = (err, req, res, next) => {
