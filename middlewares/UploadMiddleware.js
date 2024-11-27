@@ -10,7 +10,7 @@ const FILE_LIMITS = {
   propertyDocuments: 25 * 1024 * 1024 // 25MB for property documents
 };
 
-const MAX_COUNTS = {
+const MAX_COUNTS = {  
   propertyImages: 20,
   propertyVideos: 5,
   propertyDocuments: 10
@@ -94,9 +94,9 @@ const uploadPropertyMedia = multer({
     fileSize: Math.max(...Object.values(FILE_LIMITS))
   }
 }).fields([
-  { name: 'images', maxCount: MAX_COUNTS.propertyImages },
-  { name: 'videos', maxCount: MAX_COUNTS.propertyVideos },
-  { name: 'documents', maxCount: MAX_COUNTS.propertyDocuments }
+  { name: 'propertyImages', maxCount: MAX_COUNTS.propertyImages },
+  { name: 'propertyVideos', maxCount: MAX_COUNTS.propertyVideos },
+  { name: 'propertyDocuments', maxCount: MAX_COUNTS.propertyDocuments }
 ]);
 
 const handleUploadError = (err, req, res, next) => {
