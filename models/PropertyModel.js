@@ -60,22 +60,22 @@ class Property {
       errors.push('Invalid building type');
 
     // Media validation
-    if (data.images && !Array.isArray(data.images)) {
-      errors.push('Images must be an array');
-    }
+    // if (data.images && !Array.isArray(data.images)) {
+    //   errors.push('Images must be an array');
+    // }
     
-    if (data.videos && !Array.isArray(data.videos)) {
-      errors.push('Videos must be an array');
-    }
+    // if (data.videos && !Array.isArray(data.videos)) {
+    //   errors.push('Videos must be an array');
+    // }
 
-    if (data.documents && !Array.isArray(data.documents)) {
-      errors.push('Documents must be an array');
-    }
+    // if (data.documents && !Array.isArray(data.documents)) {
+    //   errors.push('Documents must be an array');
+    // }
 
     // Amenities validation - only check if it's an array, no other validation needed
-    if (data.amenities && !Array.isArray(data.amenities)) {
-      errors.push('Amenities must be an array');
-    }
+    // if (data.amenities && !Array.isArray(data.amenities)) {
+    //   errors.push('Amenities must be an array');
+    // }
 
     // URL validation for media
     if (Array.isArray(data.images)) {

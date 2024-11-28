@@ -37,11 +37,25 @@ exports.createProperty = async (req, res) => {
       }
     }
 
+    if (files?.documents && Array.isArray(files.documents)) {
+      try {
+        propertyData.documents = await uploadMultipleFiles(files.documents, 'propertyDocuments', docRef.id);
+        console.log('Uploaded documents:', propertyData.documents); // Debug log
+      } catch (error) {
+        console.error('Error uploading documents:', error);
+        if (propertyData.images) await deleteMultipleFiles(propertyData.images);
+        if (propertyData.videos) await deleteMultipleFiles(propertyData.videos);
+        await docRef.delete();
+        return res.status(400).json({ error: 'Error uploading documents. ' + error.message });
+      }
+    }
+
     // Add metadata
     propertyData.createdBy = req.user.phoneNumber;
     propertyData.createdOn = new Date();
     propertyData.images = propertyData.images || [];
     propertyData.videos = propertyData.videos || [];
+    propertyData.documents = propertyData.documents || [];
 
     // Create property instance and validate
     const property = new Property(propertyData);
@@ -51,6 +65,7 @@ exports.createProperty = async (req, res) => {
       // Clean up uploaded files if validation fails
       if (propertyData.images?.length) await deleteMultipleFiles(propertyData.images);
       if (propertyData.videos?.length) await deleteMultipleFiles(propertyData.videos);
+      if (propertyData.documents?.length) await deleteMultipleFiles(propertyData.documents);
       await docRef.delete();
       return res.status(400).json({ errors });
     }
@@ -126,11 +141,13 @@ exports.updateProperty = async (req, res) => {
     // Initialize media arrays
     updatedData.images = Array.isArray(updatedData.images) ? updatedData.images : [];
     updatedData.videos = Array.isArray(updatedData.videos) ? updatedData.videos : [];
+    updatedData.documents = Array.isArray(updatedData.documents) ? updatedData.documents : [];
 
     // Track files to delete
     let filesToDelete = {
       images: [],
-      videos: []
+      videos: [],
+      documents: []
     };
 
     // Handle file updates
@@ -182,6 +199,31 @@ exports.updateProperty = async (req, res) => {
       } else {
         updatedData.videos = existingData.videos || [];
       }
+
+      // Handle documents
+      if (files.documents) {
+        if (updatedData.deleteDocuments) {
+          const deleteDocuments = Array.isArray(updatedData.deleteDocuments)
+            ? updatedData.deleteDocuments
+            : JSON.parse(updatedData.deleteDocuments);
+          filesToDelete.documents = deleteDocuments;
+          updatedData.documents = (existingData.documents || []).filter(
+            url => !deleteDocuments.includes(url)
+          );
+        } else {
+          updatedData.documents = existingData.documents || [];
+        }
+
+        const newDocuments = await uploadMultipleFiles(
+          Array.isArray(files.documents) ? files.documents : [files.documents],
+          'propertyDocuments',
+          id
+        );
+        updatedData.documents = [...updatedData.documents, ...newDocuments];
+      } else {
+        updatedData.documents = existingData.documents || [];
+      }
+
     } catch (error) {
       console.error('Error handling files:', error);
       return res.status(400).json({ error: 'Error handling files. ' + error.message });
@@ -200,7 +242,11 @@ exports.updateProperty = async (req, res) => {
     
     if (errors.length > 0) {
       // Clean up any newly uploaded files
-      await deleteMultipleFiles([...filesToDelete.images, ...filesToDelete.videos]);
+      await deleteMultipleFiles([
+        ...filesToDelete.images, 
+        ...filesToDelete.videos,
+        ...filesToDelete.documents
+      ]);
       return res.status(400).json({ errors });
     }
 
@@ -219,7 +265,11 @@ exports.updateProperty = async (req, res) => {
     await db.collection(Property.collectionName).doc(id).update(cleanPropertyData);
 
     // Clean up deleted files
-    await deleteMultipleFiles([...filesToDelete.images, ...filesToDelete.videos]);
+    await deleteMultipleFiles([
+      ...filesToDelete.images, 
+      ...filesToDelete.videos,
+      ...filesToDelete.documents
+    ]);
 
     res.status(200).json({
       message: 'Property updated successfully',
