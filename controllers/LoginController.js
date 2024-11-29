@@ -16,9 +16,7 @@ exports.verifyFirebaseToken = async (req, res) => {
     }
 
     const expiresIn = rememberMe ? '7d' : '24h';
-
-    //changed this line
-    const token = jwt.sign({ phoneNumber, role: 'USER' }, process.env.JWT_SECRET, { expiresIn });
+    const token = jwt.sign({ phoneNumber }, process.env.JWT_SECRET, { expiresIn });
 
     const expirationDate = new Date(Date.now() + (rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000));
     
@@ -100,57 +98,6 @@ exports.isAuthenticated = async (req, res, next) => {
     res.status(401).json({ message: "Authentication failed." });
   }
 };
-
-// exports.isAuthenticated = async (req, res, next) => {
-//   try {
-//     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-
-//     if (!token) {
-//       return res.status(401).json({ message: "No token provided." });
-//     }
-
-//     let decoded;
-//     try {
-//       decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     } catch (error) {
-//       return res.status(401).json({ message: "Invalid token." });
-//     }
-
-//     // Handle both user and admin tokens
-//     const cacheKey = decoded.phoneNumber || decoded.email;
-//     if (!cacheKey) {
-//       return res.status(401).json({ message: "Invalid token format." });
-//     }
-
-//     const cachedToken = tokenCache.get(cacheKey);
-//     if (cachedToken === token) {
-//       req.user = decoded.phoneNumber ? 
-//         { phoneNumber: decoded.phoneNumber } : 
-//         { email: decoded.email };
-//       return next();
-//     }
-
-//     // Check token in database
-//     const tokenDoc = await db
-//       .collection('tokens')
-//       .doc(cacheKey)
-//       .get();
-
-//     if (!tokenDoc.exists || tokenDoc.data().token !== token || 
-//         tokenDoc.data().expiresAt.toDate() < new Date()) {
-//       return res.status(401).json({ message: "Invalid or expired token." });
-//     }
-
-//     tokenCache.set(cacheKey, token);
-//     req.user = decoded.phoneNumber ? 
-//       { phoneNumber: decoded.phoneNumber } : 
-//       { email: decoded.email };
-//     next();
-//   } catch (error) {
-//     console.error('Auth error:', error);
-//     res.status(401).json({ message: "Authentication failed." });
-//   }
-// };
 
 exports.logout = async (req, res) => {
   try {
