@@ -40,7 +40,6 @@ exports.createProperty = async (req, res) => {
     if (files?.documents && Array.isArray(files.documents)) {
       try {
         propertyData.documents = await uploadMultipleFiles(files.documents, 'propertyDocuments', docRef.id);
-        console.log('Uploaded documents:', propertyData.documents); // Debug log
       } catch (error) {
         console.error('Error uploading documents:', error);
         if (propertyData.images) await deleteMultipleFiles(propertyData.images);

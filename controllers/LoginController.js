@@ -16,7 +16,9 @@ exports.verifyFirebaseToken = async (req, res) => {
     }
 
     const expiresIn = rememberMe ? '7d' : '24h';
-    const token = jwt.sign({ phoneNumber }, process.env.JWT_SECRET, { expiresIn });
+
+    //changed this line
+    const token = jwt.sign({ phoneNumber, role: 'USER' }, process.env.JWT_SECRET, { expiresIn });
 
     const expirationDate = new Date(Date.now() + (rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000));
     
