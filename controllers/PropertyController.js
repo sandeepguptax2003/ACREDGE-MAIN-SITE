@@ -279,3 +279,54 @@ exports.updateProperty = async (req, res) => {
     res.status(500).json({ error: 'Failed to update property' });
   }
 };
+
+// Function to delete a property (soft delete)
+exports.deleteProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get the property to be deleted
+    const propertyDoc = await db.collection(Property.collectionName).doc(id).get();
+    
+    if (!propertyDoc.exists) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    const propertyData = propertyDoc.data();
+
+    // Create a new document in DeletedProperties collection
+    const deletedPropertyData = {
+      ...propertyData,
+      originalId: id,
+      deletedBy: req.user.phoneNumber,
+      deletedOn: new Date(),
+      // Maintain original metadata
+      createdBy: propertyData.createdBy,
+      createdOn: propertyData.createdOn,
+      updatedBy: propertyData.updatedBy,
+      updatedOn: propertyData.updatedOn
+    };
+
+    // Start a batch operation
+    const batch = db.batch();
+
+    // Add to DeletedProperties collection
+    const deletedPropertyRef = db.collection('DeletedProperties').doc(id);
+    batch.set(deletedPropertyRef, deletedPropertyData);
+
+    // Delete from original Properties collection
+    const propertyRef = db.collection(Property.collectionName).doc(id);
+    batch.delete(propertyRef);
+
+    // Commit the batch operation
+    await batch.commit();
+
+    res.status(200).json({
+      message: 'Property deleted successfully',
+      id: id
+    });
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    res.status(500).json({ error: 'Failed to delete property' });
+  }
+};
