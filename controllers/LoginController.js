@@ -103,15 +103,20 @@ exports.logout = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(200).json({ 
         message: "Already Logged Out, Please login again to continue." 
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    await db.collection('tokens').doc(decoded.phoneNumber).delete();
-    tokenCache.del(decoded.phoneNumber);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      await db.collection('tokens').doc(decoded.phoneNumber).delete();
+      tokenCache.del(decoded.phoneNumber);
+    } catch (jwtError) {
+      console.error('JWT verification failed during logout:', jwtError);
+    }
 
+    // Clear the cookie from the response
     res.clearCookie('token', {
       httpOnly: true,
       secure: true,
