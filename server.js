@@ -13,6 +13,7 @@ const UserRoutes = require("./routes/UserRoutes");
 const ProfileImageRoutes = require("./routes/ProfileImageRoutes");
 const propertyRoutes = require('./routes/PropertyRoutes');
 const DashboardRoutes = require("./routes/DashboardRoutes");
+const SearchRoutes = require('./routes/SearchRoutes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/user", UserRoutes);
 app.use("/api/profile-image", ProfileImageRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/dashboard', DashboardRoutes);
+app.use('/api/search', SearchRoutes);
 
 
 const PORT = process.env.PORT || 8000;

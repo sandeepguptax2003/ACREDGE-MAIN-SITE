@@ -1,6 +1,7 @@
 const Property = require('../models/PropertyModel');
 const { db } = require('../config/firebase');
 const { uploadMultipleFiles, deleteMultipleFiles } = require('../utils/FilesUpload');
+const SearchService = require('../services/SearchService');
 
 // Function to create a new property with associated files
 exports.createProperty = async (req, res) => {
@@ -76,6 +77,14 @@ exports.createProperty = async (req, res) => {
 
     // Update the document with cleaned property data
     await docRef.update(cleanPropertyData);
+
+    // Algolia search function
+    try {
+      await SearchService.indexProperty(docRef.id, cleanPropertyData);
+    } catch (searchError) {
+      console.error('Error indexing property for search:', searchError);
+      // Don't fail the request if search indexing fails
+    }
 
     res.status(201).json({
       message: 'Property added successfully',
@@ -270,6 +279,14 @@ exports.updateProperty = async (req, res) => {
       ...filesToDelete.documents
     ]);
 
+    //Algolia search function
+    try {
+      await SearchService.updateProperty(id, cleanPropertyData);
+    } catch (searchError) {
+      console.error('Error updating property in search index:', searchError);
+      // Don't fail the request if search indexing fails
+    }
+
     res.status(200).json({
       message: 'Property updated successfully',
       data: cleanPropertyData
@@ -320,6 +337,14 @@ exports.deleteProperty = async (req, res) => {
 
     // Commit the batch operation
     await batch.commit();
+
+    //Alogila search function
+    try {
+      await SearchService.deleteProperty(id);
+    } catch (searchError) {
+      console.error('Error removing property from search index:', searchError);
+      // Don't fail the request if search deletion fails
+    }
 
     res.status(200).json({
       message: 'Property deleted successfully',
